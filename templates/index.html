@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODF Status Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">ODF Dashboard</a>
+  </div>
+</nav>
+<div class="container my-4">
+    <h1>Swachh Bharat Mission - ODF Status Dashboard</h1>
+    <p>Analysis of Open Defecation Free (ODF) blocks per district.</p>
+
+    <section class="stats-section">
+        <h2>Summary Statistics</h2>
+        {% if stats %}
+        <div class="stats-grid">
+            <div><strong>Mean Total Blocks:</strong> {{ "%.2f"|format(stats.mean_total_blocks) }}</div>
+            <div><strong>Median Total Blocks:</strong> {{ "%.2f"|format(stats.median_total_blocks) }}</div>
+            <div><strong>Std Dev Total Blocks:</strong> {{ "%.2f"|format(stats.std_total_blocks) }}</div>
+            <div><strong>Mean ODF Blocks:</strong> {{ "%.2f"|format(stats.mean_odf_blocks) }}</div>
+            <div><strong>Median ODF Blocks:</strong> {{ "%.2f"|format(stats.median_odf_blocks) }}</div>
+            <div><strong>Std Dev ODF Blocks:</strong> {{ "%.2f"|format(stats.std_odf_blocks) }}</div>
+            <div><strong>Mean ODF Ratio:</strong> {{ "%.2f"|format(stats.mean_odf_ratio) }}</div>
+            <div><strong>Median ODF Ratio:</strong> {{ "%.2f"|format(stats.median_odf_ratio) }}</div>
+            <div><strong>Std Dev ODF Ratio:</strong> {{ "%.2f"|format(stats.std_odf_ratio) }}</div>
+        </div>
+        {% else %}
+        <p>Statistics could not be calculated.</p>
+        {% endif %}
+    </section>
+
+    <section class="outliers-section">
+        <h2>Outlier Detection</h2>
+
+        <div class="outlier-table">
+            <h3>Outliers (Z-score Method, Threshold=3)</h3>
+            {% if outliers_z %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>District</th>
+                        <th>Total Blocks</th>
+                        <th>ODF Blocks</th>
+                        <th>Z-Score (Total)</th>
+                        <th>Z-Score (ODF)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for outlier in outliers_z %}
+                    <tr>
+                        <td>{{ outlier.district }}</td>
+                        <td>{{ outlier.total_blocks }}</td>
+                        <td>{{ outlier.odf_blocks }}</td>
+                        <td>{{ "%.2f"|format(outlier.zscore_total) }}</td>
+                        <td>{{ "%.2f"|format(outlier.zscore_odf) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No significant outliers detected using the Z-score method.</p>
+            {% endif %}
+        </div>
+
+        <div class="outlier-table">
+            <h3>Outliers (IQR Method)</h3>
+             {% if outliers_iqr %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>District</th>
+                        <th>Total Blocks</th>
+                        <th>ODF Blocks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for outlier in outliers_iqr %}
+                    <tr>
+                        <td>{{ outlier.district }}</td>
+                        <td>{{ outlier.total_blocks }}</td>
+                        <td>{{ outlier.odf_blocks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No significant outliers detected using the IQR method.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="plots-section">
+        <h2>Visualizations</h2>
+        <div class="plot-grid">
+            <div class="plot-item">
+                <h3>Blocks Comparison per District</h3>
+                <img src="{{ plot_urls.blocks_comparison }}" alt="Blocks Comparison Bar Chart">
+                <p>Compares the total number of blocks (blue) and ODF blocks (green) for each district.</p>
+            </div>
+            <div class="plot-item">
+                <h3>Distribution of ODF Ratio</h3>
+                <img src="{{ plot_urls.odf_ratio_hist }}" alt="ODF Ratio Histogram">
+                <p>Shows the frequency distribution of the ratio of ODF blocks to total blocks across districts.</p>
+            </div>
+            <div class="plot-item">
+                <h3>Distribution of Block Counts</h3>
+                <img src="{{ plot_urls.boxplots }}" alt="Box Plots">
+                 <p>Displays the distribution (median, quartiles, potential outliers) for total blocks and ODF blocks.</p>
+            </div>
+            <div class="plot-item">
+                <h3>Total Blocks vs ODF Blocks (Outliers Highlighted)</h3>
+                <img src="{{ plot_urls.scatter_outliers }}" alt="Scatter Plot with Outliers">
+                <p>Each point represents a district. Outliers identified by the Z-score method are circled in red.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>ODF Dashboard Project</p>
+    </footer>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
